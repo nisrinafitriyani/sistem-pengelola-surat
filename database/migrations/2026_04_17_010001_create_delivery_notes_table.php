@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('approval_id')->constrained()->cascadeOnDelete();
             $table->string('delivery_number', 30)->unique();
-            $table->date('date')->nullable();
+            $table->date('date');
             $table->string('vehicle_type', 50)->nullable();
             $table->string('vehicle_plate', 15)->nullable();
             $table->string('driver_name', 100)->nullable();
