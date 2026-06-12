@@ -36,7 +36,7 @@ Ikuti langkah-langkah di bawah ini untuk menjalankan aplikasi di lingkungan loka
 
 1. **Clone repositori ini** (Jika menggunakan Git):
    ```bash
-   git clone <url-repo-anda>
+   git clone https://github.com/nisrinafitriyani/sistem-pengelola-surat.git
    cd "pengelolaan surat penawaran dan persetujuan"
    ```
 
