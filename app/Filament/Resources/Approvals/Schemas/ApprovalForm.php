@@ -19,7 +19,7 @@ class ApprovalForm
             ->components([
                 Section::make('Informasi Penawaran')->schema([
                     Placeholder::make('quotation_ref')
-                        ->label('No. Surat Penawaran')
+                        ->label('No. Penawaran')
                         ->content(fn($record) => $record?->quotation?->reference_number ?? '-'),
                     Placeholder::make('quotation_client')
                         ->label('Klien')

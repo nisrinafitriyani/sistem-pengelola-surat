@@ -18,10 +18,10 @@ class HandoverForm
             ->components([
                 Section::make('Informasi Penawaran')->schema([
                     Placeholder::make('quotation_ref')
-                        ->label('No. Surat Penawaran')
+                        ->label('No. Penawaran')
                         ->content(fn ($record) => $record?->approval?->quotation?->reference_number ?? '-'),
                     Placeholder::make('approval_ref')
-                        ->label('No. Surat Persetujuan')
+                        ->label('No. Persetujuan')
                         ->content(fn ($record) => $record?->approval?->reference_number ?? '-'),
                     Placeholder::make('quotation_client')
                         ->label('Klien')
@@ -36,7 +36,7 @@ class HandoverForm
                 ])->columns(2),
 
                 Section::make('Data Berita Acara')->schema([
-                    TextInput::make('reference_number')->label('Nomor Referensi')->unique(ignoreRecord: true)->required(),
+                    TextInput::make('reference_number')->label('No. Berita Acara')->unique(ignoreRecord: true)->required(),
                     DatePicker::make('date')->label('Tanggal'),
                 ])->columns(2),
 

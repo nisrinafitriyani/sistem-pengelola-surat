@@ -46,7 +46,7 @@ class QuotationForm
                         ])
                         ->required(),
                     TextInput::make('reference_number')
-                        ->label('Nomor Referensi')
+                        ->label('Nomor Penawaran')
                         ->required()
                         ->unique(ignoreRecord: true)
                         ->default(function ($get) {

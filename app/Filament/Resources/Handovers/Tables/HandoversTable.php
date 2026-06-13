@@ -19,7 +19,7 @@ class HandoversTable
             }))
             ->columns([
                 TextColumn::make('reference_number')->label('No. Berita Acara')->searchable()->copyable(),
-                TextColumn::make('approval.quotation.reference_number')->label('No. Surat Penawaran')->searchable()->copyable(),
+                TextColumn::make('approval.quotation.reference_number')->label('No. Penawaran')->searchable()->copyable(),
                 TextColumn::make('approval.quotation.client.name')->label('Klien')->searchable(),
                 TextColumn::make('approval.quotation.project_name')->label('Proyek')->searchable(),
                 TextColumn::make('date')->label('Tanggal')->date(),

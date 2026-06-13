@@ -24,7 +24,7 @@ class QuotationsTable
     {
         return $table
             ->columns([
-                TextColumn::make('reference_number')->label('No. Surat')->searchable()->copyable()->sortable(),
+                TextColumn::make('reference_number')->label('No. Penawaran')->searchable()->copyable()->sortable(),
                 TextColumn::make('client.name')->label('Klien')->searchable()->copyable(),
                 TextColumn::make('date')->label('Tanggal')->date()->sortable(),
                 TextColumn::make('type')->label('Tipe')

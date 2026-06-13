@@ -23,7 +23,7 @@ class ApprovalsTable
             }))
             ->columns([
                 TextColumn::make('reference_number')->label('No. Persetujuan')->searchable()->copyable(),
-                TextColumn::make('quotation.reference_number')->label('No. Surat Penawaran')->searchable()->copyable(),
+                TextColumn::make('quotation.reference_number')->label('No. Penawaran')->searchable()->copyable(),
                 TextColumn::make('quotation.client.name')->label('Klien')->searchable()->copyable(),
                 TextColumn::make('quotation.project_name')->label('Proyek')->copyable(),
                 TextColumn::make('quotation.type')->label('Tipe')
