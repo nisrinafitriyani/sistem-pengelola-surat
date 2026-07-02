@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\Quotations\Schemas;
 
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Builder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -22,6 +22,8 @@ class QuotationForm
                         ->label('Klien')
                         ->relationship('client', 'name')
                         ->searchable()
+                        ->searchPrompt('Ketik untuk mencari...')
+                        ->noSearchResultsMessage('Klien tidak ditemukan')
                         ->preload()
                         ->live(debounce: 500)
                         ->afterStateUpdated(function ($state, $set, $get) {
@@ -91,45 +93,95 @@ class QuotationForm
                 Section::make('Detail Proyek')->schema([
                     TextInput::make('project_name')->label('Nama Proyek')->required(),
                     TextInput::make('project_subname')->label('Subyek Proyek'),
-                    TextInput::make('service_type')->label('Tipe Layanan (Service)')->required(),
-                    TextInput::make('work_category')->label('Kategori Pekerjaan')->required(),
+                    Select::make('service_type')
+                        ->label('Tipe Layanan (Service)')
+                        ->multiple()
+                        ->searchable()
+                        ->searchPrompt('Ketik untuk mencari...')
+                        ->noSearchResultsMessage('Layanan tidak ditemukan')
+                        ->options([
+                            'Supply' => 'Supply',
+                            'Delivery' => 'Delivery',
+                            'Installation' => 'Installation',
+                            'Demolish' => 'Demolish',
+                            'Dismantle' => 'Dismantle',
+                        ])->required(),
+                    Select::make('work_category')
+                        ->label('Kategori Pekerjaan')
+                        ->options([
+                            'MISC BUILDING WORK' => 'MISC BUILDING WORK',
+                        ])
+                        // ->searchable()
+                        ->default('MISC BUILDING WORK')
+                        ->required(),
                     Textarea::make('subject_description')->label('Deskripsi/Perihal')->required()->columnSpanFull(),
                 ])->columns(2),
 
                 Section::make('Daftar Item')->schema([
-                    Repeater::make('items')
-                        ->schema([
-                            TextInput::make('uraian')->label('Uraian')->required()->columnSpan(3),
-                            TextInput::make('qty')->label('Qty')->numeric()->required()->columnSpan(1)
-                                ->live(debounce: 500)
-                                ->afterStateUpdated(function ($state, $set, $get) {
-                                    $qty = (float) ($state ?? 0);
-                                    $harga = (float) ($get('harga_satuan') ?? 0);
-                                    $set('sub_total', $qty * $harga);
-                                    self::recalculateTotal($get, $set);
-                                }),
-                            TextInput::make('unit')->label('Unit')->required()->placeholder('Bag, Ls...')->columnSpan(1),
-                            TextInput::make('harga_satuan')->label('Harga Satuan')->numeric()->required()->prefix('Rp')->columnSpan(2)
-                                ->live(debounce: 500)
-                                ->afterStateUpdated(function ($state, $set, $get) {
-                                    $qty = (float) ($get('qty') ?? 0);
-                                    $harga = (float) ($state ?? 0);
-                                    $set('sub_total', $qty * $harga);
-                                    self::recalculateTotal($get, $set);
-                                }),
-                            TextInput::make('sub_total')->label('Sub Total')->numeric()->readOnly()->prefix('Rp')->columnSpan(2)
-                                ->default(0),
+                    Builder::make('items')
+                        ->blocks([
+                            Builder\Block::make('header_row')
+                                ->label('Judul Kategori')
+                                ->schema([
+                                    TextInput::make('uraian')->label('Judul')->required()
+                                ]),
+                            Builder\Block::make('item_row')
+                                ->label('Item Barang/Jasa')
+                                ->schema([
+                                    TextInput::make('uraian')->label('Uraian')->required()->columnSpan(3)
+                                        ->live(onBlur: true),
+                                    TextInput::make('qty')->label('Qty')->numeric()->minValue(0)->required()->columnSpan(1)
+                                        ->live(debounce: 500)
+                                        ->afterStateUpdated(function ($state, $set, $get) {
+                                            $qty = (float) ($state ?? 0);
+                                            if ($qty < 0) { $qty = 0; $set('qty', null); }
+                                            $harga = (float) ($get('harga_satuan') ?? 0);
+                                            $set('sub_total', $qty * $harga);
+                                            self::recalculateTotal($get, $set);
+                                        }),
+                                    TextInput::make('unit')->label('Unit')->required()->placeholder('Bag, Ls...')->columnSpan(1)
+                                        ->live(onBlur: true),
+                                    TextInput::make('harga_satuan')->label('Harga Satuan')->numeric()->minValue(0)->required()->prefix('Rp')->columnSpan(2)
+                                        ->live(debounce: 500)
+                                        ->afterStateUpdated(function ($state, $set, $get) {
+                                            $harga = (float) ($state ?? 0);
+                                            if ($harga < 0) { $harga = 0; $set('harga_satuan', null); }
+                                            $qty = (float) ($get('qty') ?? 0);
+                                            $set('sub_total', $qty * $harga);
+                                            self::recalculateTotal($get, $set);
+                                        }),
+                                    TextInput::make('sub_total')->label('Sub Total')->numeric()->readOnly()->prefix('Rp')->columnSpan(2)
+                                        ->default(0),
+                                ])
+                                ->columns(9),
+                            Builder\Block::make('note_row')
+                                ->label('Catatan Khusus')
+                                ->schema([
+                                    TextInput::make('uraian')->label('Catatan')->required()
+                                ]),
+                            Builder\Block::make('discount_row')
+                                ->label('Potongan / Diskon')
+                                ->schema([
+                                    TextInput::make('uraian')->label('Keterangan')->default('Discount')->required()->columnSpan(3),
+                                    TextInput::make('harga_satuan')->label('Nominal Diskon')->numeric()->minValue(0)->required()->prefix('- Rp')->columnSpan(4)
+                                        ->live(debounce: 500)
+                                        ->afterStateUpdated(function ($state, $set, $get) {
+                                            $harga = (float) ($state ?? 0);
+                                            if ($harga < 0) { $harga = 0; $set('harga_satuan', null); }
+                                            $set('sub_total', -$harga);
+                                            self::recalculateTotal($get, $set);
+                                        }),
+                                    TextInput::make('sub_total')->label('Sub Total Diskon')->numeric()->readOnly()->prefix('Rp')->columnSpan(2)->default(0)
+                                ])
+                                ->columns(9)
                         ])
-                        ->columns(9)
-                        ->defaultItems(1)
-                        ->addActionLabel('+ Tambah Item')
-                        ->columnSpanFull()
-                        ->live()
-                        ->afterStateUpdated(function ($state, $set) {
-                            if (!$state) { $set('total_amount', 0); return; }
-                            $total = collect($state)->sum(fn($item) => (float)($item['sub_total'] ?? ((float)($item['qty'] ?? 0) * (float)($item['harga_satuan'] ?? 0))));
-                            $set('total_amount', $total);
-                        }),
+                        ->addActionLabel('+ Tambah Data Baru')
+                        ->deleteAction(
+                            fn ($action) => $action->after(function ($get, $set) {
+                                self::recalculateTotal($get, $set);
+                            })
+                        )
+                        ->columnSpanFull(),
 
                     TextInput::make('total_amount')->label('Total Keseluruhan')->numeric()->readOnly()->prefix('Rp')->default(0),
                 ])->columnSpanFull(),
@@ -157,10 +209,22 @@ class QuotationForm
 
     private static function recalculateTotal($get, $set): void
     {
-        $items = $get('../../items');
+        // Try getting Builder items first, if not found try Repeater items
+        $items = $get('../../../items');
+        $totalPath = '../../../total_amount';
+        if ($items === null) {
+            $items = $get('../../items');
+            $totalPath = '../../total_amount';
+        }
+        
         if (!$items) return;
-        $total = collect($items)->sum(fn($item) => (float)($item['sub_total'] ?? ((float)($item['qty'] ?? 0) * (float)($item['harga_satuan'] ?? 0))));
-        $set('../../total_amount', $total);
+        
+        $total = collect($items)->sum(function($item) {
+            $data = $item['data'] ?? $item; // 'data' for builder, fallback to item for repeater
+            return (float)($data['sub_total'] ?? 0);
+        });
+        
+        $set($totalPath, $total);
     }
 
     private static function toRoman(int $number): string

@@ -21,4 +21,5 @@ return [
     'string' => ':Attribute harus berupa teks.',
     'unique' => ':Attribute sudah digunakan.',
 
+    'regex' => 'Format pengisian pada kolom :attribute salah.',
 ];

@@ -30,11 +30,61 @@ class QuotationSeeder extends Seeder
 
         // --- Data Proyek ---
         $projects = [
-            ['name' => 'SENAYAN SQUARE', 'subname' => 'Gedung A Lt. 3', 'service' => 'Pengadaan Material Bangunan', 'category' => 'Sipil'],
-            ['name' => 'GRAND MALL BEKASI', 'subname' => 'Area Parkir B2', 'service' => 'Jasa Instalasi Mekanikal', 'category' => 'Mekanikal'],
-            ['name' => 'APARTEMEN RESIDIA', 'subname' => 'Tower C Unit 1-50', 'service' => 'Pengadaan Peralatan Listrik', 'category' => 'Elektrikal'],
-            ['name' => 'GEDUNG PERKANTORAN PRIMA', 'subname' => 'Lantai 5-10', 'service' => 'Jasa Finishing Interior', 'category' => 'Interior'],
-            ['name' => 'PASAR MODERN TANGERANG', 'subname' => 'Blok C & D', 'service' => 'Pengadaan Kerangka Baja', 'category' => 'Struktural'],
+            [
+                'name' => 'SENAYAN SQUARE (Misc.)', 
+                'subname' => 'HTL - ADD WORK for SHENSHU REPAIR 2nd FL', 
+                'service' => ['Supply', 'Delivery'], 
+                'category' => 'MISC BUILDING WORK',
+                'subject' => 'Batu Koral Alor',
+                'items' => [
+                    ['uraian' => 'Stone Koral Alor size 2-3cm @5kg', 'qty' => 10, 'unit' => 'Bag', 'harga_satuan' => 90000, 'sub_total' => 900000],
+                    ['uraian' => 'Transportation to Site', 'qty' => 1, 'unit' => 'Ls', 'harga_satuan' => 150000, 'sub_total' => 150000],
+                ]
+            ],
+            [
+                'name' => 'GRAND MALL BEKASI', 
+                'subname' => 'Area Parkir B2', 
+                'service' => ['Installation'], 
+                'category' => 'MISC BUILDING WORK',
+                'subject' => 'Pemasangan Pipa Saluran Air',
+                'items' => [
+                    ['uraian' => 'Pipa PVC 4 Inch', 'qty' => 20, 'unit' => 'Btg', 'harga_satuan' => 120000, 'sub_total' => 2400000],
+                    ['uraian' => 'Jasa Pemasangan', 'qty' => 1, 'unit' => 'Ls', 'harga_satuan' => 1500000, 'sub_total' => 1500000],
+                ]
+            ],
+            [
+                'name' => 'APARTEMEN RESIDIA', 
+                'subname' => 'Tower C Unit 1-50', 
+                'service' => ['Supply'], 
+                'category' => 'MISC BUILDING WORK',
+                'subject' => 'Peralatan Listrik dan Lampu',
+                'items' => [
+                    ['uraian' => 'Lampu LED Philips 12W', 'qty' => 100, 'unit' => 'Pcs', 'harga_satuan' => 45000, 'sub_total' => 4500000],
+                    ['uraian' => 'Kabel Listrik NYM 2x1.5', 'qty' => 5, 'unit' => 'Roll', 'harga_satuan' => 350000, 'sub_total' => 1750000],
+                ]
+            ],
+            [
+                'name' => 'GEDUNG PERKANTORAN PRIMA', 
+                'subname' => 'Lantai 5-10', 
+                'service' => ['Demolish', 'Dismantle'], 
+                'category' => 'MISC BUILDING WORK',
+                'subject' => 'Pembongkaran Partisi Gypsum',
+                'items' => [
+                    ['uraian' => 'Jasa Pembongkaran Partisi', 'qty' => 150, 'unit' => 'm2', 'harga_satuan' => 25000, 'sub_total' => 3750000],
+                    ['uraian' => 'Pembuangan Puing (Buang Keluar)', 'qty' => 5, 'unit' => 'Rit', 'harga_satuan' => 300000, 'sub_total' => 1500000],
+                ]
+            ],
+            [
+                'name' => 'PASAR MODERN TANGERANG', 
+                'subname' => 'Blok C & D', 
+                'service' => ['Supply', 'Installation'], 
+                'category' => 'MISC BUILDING WORK',
+                'subject' => 'Kerangka Baja Ringan',
+                'items' => [
+                    ['uraian' => 'Baja Ringan Canal C 0.75', 'qty' => 50, 'unit' => 'Btg', 'harga_satuan' => 85000, 'sub_total' => 4250000],
+                    ['uraian' => 'Jasa Pemasangan Baja Ringan', 'qty' => 1, 'unit' => 'Ls', 'harga_satuan' => 2500000, 'sub_total' => 2500000],
+                ]
+            ],
         ];
 
         // 6 bulan berdekatan: Januari - Juni 2026
@@ -71,16 +121,72 @@ class QuotationSeeder extends Seeder
             $abbr = $client->abbreviation ?? 'IMG';
             $refNumber = "{$no}/SPH/IMG-{$abbr}/{$monthRoman}/{$year}/" . str_pad($day, 2, '0', STR_PAD_LEFT);
 
-            $qty1 = rand(5, 50);
-            $harga1 = rand(500000, 5000000);
-            $qty2 = 1;
-            $harga2 = rand(100000, 500000);
-            
-            $items = [
-                ['uraian' => 'Material ' . $project['service'], 'qty' => $qty1, 'unit' => 'Bag', 'harga_satuan' => $harga1, 'sub_total' => $qty1 * $harga1],
-                ['uraian' => 'Transportation to Site', 'qty' => $qty2, 'unit' => 'Ls', 'harga_satuan' => $harga2, 'sub_total' => $qty2 * $harga2],
-            ];
-            $total = collect($items)->sum('sub_total');
+            $serviceString = implode(' & ', $project['service']);
+
+            // Create varied dummy data structures
+            $items = [];
+            $randCase = $i % 3;
+
+            if ($randCase == 0) {
+                // Complex structure: Headers + Items + Discount
+                $items = [
+                    [
+                        'type' => 'header_row',
+                        'data' => ['uraian' =>  $serviceString]
+                    ],
+                    [
+                        'type' => 'item_row',
+                        'data' => ['uraian' => $project['items'][0]['uraian'], 'qty' => $project['items'][0]['qty'], 'unit' => $project['items'][0]['unit'], 'harga_satuan' => $project['items'][0]['harga_satuan'], 'sub_total' => $project['items'][0]['sub_total']]
+                    ],
+                    [
+                        'type' => 'header_row',
+                        'data' => ['uraian' => 'Transport & Logistik']
+                    ],
+                    [
+                        'type' => 'item_row',
+                        'data' => ['uraian' => $project['items'][1]['uraian'], 'qty' => $project['items'][1]['qty'], 'unit' => $project['items'][1]['unit'], 'harga_satuan' => $project['items'][1]['harga_satuan'], 'sub_total' => $project['items'][1]['sub_total']]
+                    ],
+                    [
+                        'type' => 'discount_row',
+                        'data' => ['uraian' => 'Discount Khusus Akhir Tahun', 'qty' => null, 'unit' => null, 'harga_satuan' => 500000, 'sub_total' => -500000]
+                    ]
+                ];
+            } elseif ($randCase == 1) {
+                // Flat structure: Just items, no headers
+                $items = [
+                    [
+                        'type' => 'item_row',
+                        'data' => ['uraian' => $project['items'][0]['uraian'], 'qty' => $project['items'][0]['qty'], 'unit' => $project['items'][0]['unit'], 'harga_satuan' => $project['items'][0]['harga_satuan'], 'sub_total' => $project['items'][0]['sub_total']]
+                    ],
+                    [
+                        'type' => 'item_row',
+                        'data' => ['uraian' => $project['items'][1]['uraian'], 'qty' => $project['items'][1]['qty'], 'unit' => $project['items'][1]['unit'], 'harga_satuan' => $project['items'][1]['harga_satuan'], 'sub_total' => $project['items'][1]['sub_total']]
+                    ]
+                ];
+            } else {
+                // Medium structure: 1 Header, multiple items, and a Note
+                $items = [
+                    [
+                        'type' => 'header_row',
+                        'data' => ['uraian' => 'Rincian ' . $serviceString]
+                    ],
+                    [
+                        'type' => 'item_row',
+                        'data' => ['uraian' => $project['items'][0]['uraian'], 'qty' => $project['items'][0]['qty'], 'unit' => $project['items'][0]['unit'], 'harga_satuan' => $project['items'][0]['harga_satuan'], 'sub_total' => $project['items'][0]['sub_total']]
+                    ],
+                    [
+                        'type' => 'item_row',
+                        'data' => ['uraian' => $project['items'][1]['uraian'], 'qty' => $project['items'][1]['qty'], 'unit' => $project['items'][1]['unit'], 'harga_satuan' => $project['items'][1]['harga_satuan'], 'sub_total' => $project['items'][1]['sub_total']]
+                    ],
+                    [
+                        'type' => 'note_row',
+                        'data' => ['uraian' => 'Catatan: Sudah termasuk biaya packing.']
+                    ]
+                ];
+            }
+            $total = collect($items)->sum(function($i) {
+                return $i['data']['sub_total'] ?? 0;
+            });
 
             Quotation::create([
                 'client_id'           => $client->id,
@@ -90,13 +196,13 @@ class QuotationSeeder extends Seeder
                 'project_subname'     => $project['subname'],
                 'service_type'        => $project['service'],
                 'work_category'       => $project['category'],
-                'subject_description' => $project['service'] . ' pada proyek ' . $project['name'] . '.',
+                'subject_description' => $project['subject'],
                 'type'                => $type,
                 'status'              => 'draft', // Tetap draft aman
                 'items'               => $items,
                 'total_amount'        => $total,
-                'signature_name'      => 'Direktur Utama',
-                'signature_role'      => 'Direktur',
+                'signature_name'      => 'Bambang H',
+                'signature_role'      => 'Marketing',
                 'created_by'          => $admin?->id,
             ]);
         }

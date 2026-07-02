@@ -192,7 +192,7 @@
 
         <div style="margin-bottom: 10px;">
             Dengan hormat,<br>
-            Bersama ini kami mengajukan Penawaran {{ $quotation->service_type }}
+            Bersama ini kami mengajukan Penawaran {{ $quotation->formatted_service_type }}
             {{ $quotation->subject_description }}.<br>
             Dengan spesifikasi sebagai berikut :
         </div>
@@ -226,7 +226,7 @@
                     <tr>
                         <td></td>
                         <td class="text-left" style= "padding-left: 110px; font-weight: bold; ">
-                            {{ $quotation->service_type }}
+                            {{ $quotation->formatted_service_type }}
                         </td>
                         <td></td>
                         <td></td>
@@ -245,21 +245,70 @@
                     </tr>
                 @endif
 
-                @php $items = $quotation->items ?? []; @endphp
+                @php 
+                    $items = $quotation->items ?? []; 
+                    $hasHeader = collect($items)->contains(function($i) {
+                        return ($i['type'] ?? 'item_row') === 'header_row';
+                    });
+                    $numbering = 1;
+                @endphp
                 @foreach($items as $index => $item)
-                    <tr>
-                        <td class="text-center">{{ $loop->iteration }}</td>
-                        <td style="padding-left: 10px;">{{ $item['uraian'] ?? '' }}</td>
-                        <td class="text-center">{{ $item['qty'] ?? 0 }}</td>
-                        <td class="text-center">{{ $item['unit'] ?? '' }}</td>
-                        <td class="text-right" style="padding-right: 6px;">
-                            {{ number_format($item['harga_satuan'] ?? 0, 0, ',', '.') }}
-                        </td>
-                        <td class="text-right" style="padding-right: 6px;">
-                            @php $subtotal = $item['sub_total'] ?? (($item['qty'] ?? 0) * ($item['harga_satuan'] ?? 0)); @endphp
-                            {{ number_format($subtotal, 0, ',', '.') }}
-                        </td>
-                    </tr>
+                    @php 
+                        $type = $item['type'] ?? 'item_row'; 
+                        $data = $item['data'] ?? $item;
+                    @endphp
+
+                    @if($type === 'header_row')
+                        <tr>
+                            <td class="text-center" style="font-weight: bold;">{{ $numbering++ }}</td>
+                            <td style="padding-left: 10px; font-weight: bold;">
+                                {{ $data['uraian'] ?? '' }}
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    @elseif($type === 'note_row')
+                        <tr>
+                            <td></td>
+                            <td style="padding-left: 10px; font-style: italic;">
+                                {{ $data['uraian'] ?? '' }}
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    @elseif($type === 'discount_row')
+                        <tr>
+                            <td></td>
+                            <td style="padding-left: 10px; font-weight: bold; text-align: left;">
+                                {{ $data['uraian'] ?? 'Discount' }}
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td class="text-right" style="padding-right: 6px; color: red;">
+                                @php $subtotal = $data['sub_total'] ?? -($data['harga_satuan'] ?? 0); @endphp
+                                ({{ number_format(abs($subtotal), 0, ',', '.') }})
+                            </td>
+                        </tr>
+                    @else
+                        <tr>
+                            <td class="text-center">{{ $hasHeader ? '-' : $numbering++ }}</td>
+                            <td style="padding-left: 20px;">{{ $data['uraian'] ?? '' }}</td>
+                            <td class="text-center">{{ $data['qty'] ?? 0 }}</td>
+                            <td class="text-center">{{ $data['unit'] ?? '' }}</td>
+                            <td class="text-right" style="padding-right: 6px;">
+                                {{ number_format($data['harga_satuan'] ?? 0, 0, ',', '.') }}
+                            </td>
+                            <td class="text-right" style="padding-right: 6px;">
+                                @php $subtotal = $data['sub_total'] ?? (($data['qty'] ?? 0) * ($data['harga_satuan'] ?? 0)); @endphp
+                                {{ number_format($subtotal, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                    @endif
                 @endforeach
 
                 @for ($i = 0; $i < 2; $i++)
@@ -275,7 +324,7 @@
 
                 <tr class="row-total">
                     <td colspan="5" class="text-left"
-                        style="border-right: 1px solid black; border-bottom: 2px solid black; padding-left: 10px;">TOTAL
+                        style="border-right: 1px solid black; border-bottom: 2px solid black; padding-left: 50px;">TOTAL
                     </td>
                     <td style="padding: 0; background-color: white; border-bottom: 2px solid black;">
                         <table style="width: 100%; border: none; margin: 0; border-collapse: collapse;">
@@ -293,7 +342,7 @@
 
         <div style="margin-top: 30px;">
             Demikian surat penawaran ini kami sampaikan, sebagai bahan pertimbangan pekerjaan
-            {{ $quotation->service_type }} {{ $quotation->subject_description }}.<br><br>
+            {{ $quotation->formatted_service_type }} {{ $quotation->subject_description }}.<br><br>
             Terima kasih atas perhatian dan kerjasamanya.<br>
             Hormat kami,
         </div>

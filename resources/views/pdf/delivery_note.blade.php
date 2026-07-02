@@ -191,7 +191,7 @@
                 </table>
             </td>
             
-            <td style="width: 45%; vertical-align: top; padding-left: 30px;">
+            <td style="width: 45%; vertical-align: top; padding-left: 150px;">
                 <div style="margin-bottom: 12px; font-size: 20px; font-weight: bold;">
                     Jakarta, {{ \Carbon\Carbon::parse($deliveryNote->date)->translatedFormat('d F Y') }}
                 </div>
@@ -219,7 +219,7 @@
 
     <div style="margin-bottom: 10px;">
         Dengan Hormat,<br>
-        Dengan ini kami mengirimkan Material {{ $quotation->service_type }} untuk {{ $quotation->client->name ?? '-' }}, {{ $quotation->project_subname }}<br>
+        Dengan ini kami mengirimkan Material {{ $quotation->formatted_service_type }} untuk {{ $quotation->client->name ?? '-' }}, {{ $quotation->project_subname }}<br>
         dengan rincian sebagai berikut :
     </div>
 
@@ -250,7 +250,7 @@
             <tr>
                 <td></td>
                 <td class="text-left" style= "padding-left: 110px; font-weight: bold; ">
-                    {{ $quotation->service_type }}
+                    {{ $quotation->formatted_service_type }}
                 </td>
                 <td></td>
                 <td></td>
@@ -265,15 +265,50 @@
             </tr>
             @endif
 
-            @php $items = $quotation->items ?? []; @endphp
+            @php 
+                $items = $quotation->items ?? []; 
+                $hasHeader = collect($items)->contains(function($i) {
+                    return ($i['type'] ?? 'item_row') === 'header_row';
+                });
+                $numbering = 1;
+            @endphp
             @foreach($items as $index => $item)
-            <tr>
-                <td class="text-center">{{ $loop->iteration }}</td>
-                <td style="padding-left: 15px;">{{ $item['uraian'] ?? '' }}</td>
-                <td class="text-center">{{ $item['qty'] ?? 0 }}</td>
-                <td class="text-center">{{ $item['unit'] ?? '' }}</td>
-                <td class="text-center">Terkirim</td>
-            </tr>
+                @php 
+                    $type = $item['type'] ?? 'item_row'; 
+                    $data = $item['data'] ?? $item;
+                @endphp
+
+                @if($type === 'header_row')
+                    <tr>
+                        <td class="text-center" style="font-weight: bold;">{{ $numbering++ }}</td>
+                        <td style="padding-left: 10px; font-weight: bold; ">
+                            {{ $data['uraian'] ?? '' }}
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                @elseif($type === 'note_row')
+                    <tr>
+                        <td></td>
+                        <td style="padding-left: 10px; font-style: italic;">
+                            {{ $data['uraian'] ?? '' }}
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                @elseif($type === 'discount_row')
+                    <!-- Khusus diskon, kita tidak tampilkan di surat jalan -->
+                @else
+                    <tr>
+                        <td class="text-center">{{ $hasHeader ? '-' : $numbering++ }}</td>
+                        <td style="padding-left: 20px;">{{ $data['uraian'] ?? '' }}</td>
+                        <td class="text-center">{{ $data['qty'] ?? 0 }}</td>
+                        <td class="text-center">{{ $data['unit'] ?? '' }}</td>
+                        <td></td>
+                    </tr>
+                @endif
             @endforeach
 
             @for ($i = 0; $i < 2; $i++)
